@@ -1,53 +1,37 @@
 var express = require('express');
 var app = express();
+var jtool = require('./_lib/jtool');
 
 
 app.use('/*', function (req, res, next) {
-    var url = req.originalUrl;
-
-    //未知路径
+    //预防未知路径
     var router;
     try {
-        router = require('./routes' + url);
+        router = require('./routes' + req.baseUrl);
     }
     catch (e) {
-        res.send({
+        jtool.send(res, {
             status: 404,
             msg   : '未知路径'
         });
         return;
     }
 
-    var fn;
-    switch (req.method) {
+    var fn,
+        method = req.method;
+    switch (method) {
         //查询
         case 'GET':
-        {
-            fn = router.get;
-            break;
-        }
         //新建
         case 'POST':
-        {
-            fn = router.post;
-            break;
-        }
         //更新(完整信息)
         case 'PUT':
-        {
-            fn = router.put;
-            break;
-        }
         //更新(改变属性)
         case 'PATCH':
-        {
-            fn = router.patch;
-            break;
-        }
         //删除
         case 'DELETE':
         {
-            fn = router.delete;
+            fn = router[method.toLowerCase()];
             break;
         }
         //其他
@@ -59,10 +43,15 @@ app.use('/*', function (req, res, next) {
     }
     //未知的method
     if (typeof fn !== 'function') {
+        jtool.send(res, {
+            status: 404,
+            msg   : '未知方法'
+        });
         return;
     }
     fn(req, res, next);
 });
+
 
 app.listen(3000);
 
