@@ -1,55 +1,48 @@
 var express = require('express');
 var app = express();
-var jtool = require('./_lib/jtool');
+var jtool = require('jtool');
 
 
-app.use('/*', function (req, res, next) {
+//登陆拦截
+app.use(function (req, res, next) {
+    //不是get都拦截下
+    if (req.method !== 'GET') {
+        var uid = req.session && req.session.uid;
+        if (!uid) {
+            return jtool.send(res, {
+                status: 401,
+                msg   : '未登陆'
+            });
+        }
+    }
+    next();
+});
+
+
+//路径响应
+app.use('/*', function (req, res) {
     //预防未知路径
     var router;
     try {
         router = require('./routes' + req.baseUrl);
     }
     catch (e) {
-        jtool.send(res, {
+        return jtool.send(res, {
             status: 404,
             msg   : '未知路径'
         });
-        return;
     }
 
-    var fn,
-        method = req.method;
-    switch (method) {
-        //查询
-        case 'GET':
-        //新建
-        case 'POST':
-        //更新(完整信息)
-        case 'PUT':
-        //更新(改变属性)
-        case 'PATCH':
-        //删除
-        case 'DELETE':
-        {
-            fn = router[method.toLowerCase()];
-            break;
-        }
-        //其他
-        default:
-        {
-            fn = router.callback;
-            res.send('default');
-        }
-    }
+    //请求响应函数
+    var cb = router[req.method.toLowerCase()];
     //未知的method
-    if (typeof fn !== 'function') {
-        jtool.send(res, {
+    if (typeof cb !== 'function') {
+        return jtool.send(res, {
             status: 404,
             msg   : '未知方法'
         });
-        return;
     }
-    fn(req, res, next);
+    cb(req, res);
 });
 
 
