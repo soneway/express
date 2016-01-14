@@ -3,12 +3,50 @@ var app = express();
 var jtool = require('jtool');
 
 
+//解析ajax请求的application/x-www-form-urlencoded数据,不然req.body无法获取
+var bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extended: true}));
+
+//session
+var session = require('express-session');
+app.use(session({
+    secret           : 'express',
+    key              : 'express',
+    resave           : true,
+    saveUninitialized: true,
+    cookie           : {
+        maxAge: (1000 * 60 * 60) * 24
+    }
+}));
+
+
+//需要登陆拦截的path
+var loginPaths = ['/user'],
+//不要登陆拦截的path
+    nologinPaths = ['/login'];
 //登陆拦截
-app.use(function (req, res, next) {
-    //不是get都拦截下
+app.use('/*', function (req, res, next) {
+    var path = req.baseUrl;
+
+    //不需要登陆拦截的
+    if (nologinPaths.indexOf(path) !== -1) {
+        return next();
+    }
+
+    //需要登陆拦截的
+    if (loginPaths.indexOf(path) !== -1) {
+        if (!req.session.user) {
+            return jtool.send(res, {
+                status: 401,
+                msg   : '未登陆'
+            });
+        }
+        next();
+    }
+
+    //其他默认为不是get都拦截下
     if (req.method !== 'GET') {
-        var uid = req.session && req.session.uid;
-        if (!uid) {
+        if (!req.session.user) {
             return jtool.send(res, {
                 status: 401,
                 msg   : '未登陆'

@@ -6,7 +6,7 @@ module.exports = {
         var uid = req.body.uid,
             pwd = req.body.pwd;
 
-        User.get(uid, function (err, user) {
+        User.get({uid: uid}, function (err, user) {
             if (!user) {
                 return jtool.send(res, {
                     status: 401,
@@ -20,10 +20,11 @@ module.exports = {
                 });
             }
 
-            req.session.uid = user.uid;
+            //删除密码信息
+            delete user.pwd;
+            req.session.user = user;
             jtool.send(res, {
                 status: 200,
-                msg   : '登陆成功',
                 data  : user
             });
         });

@@ -5,6 +5,7 @@
     "dependencies": {
         "express"        : "",
         "mongodb"        : "",
-        "express-session": ""
+        "express-session": "",
+        "body-parser"    : ""
     }
 }

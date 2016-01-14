@@ -1,4 +1,4 @@
-var mongodb = require('../db');
+var db = require('../db')('user');
 
 function User(user) {
     this.uid = user.uid;
@@ -9,18 +9,19 @@ function User(user) {
 module.exports = User;
 
 User.prototype.save = function (cb) {
-
-};
-
-User.get = function (uid, cb) {
+    var user = this;
     mongodb.open(function (err, db) {
         db.collection('user', function (err, collection) {
-            collection.findOne({
-                uid: uid
+            collection.insert(user, {
+                safe: true
             }, function (err, doc) {
                 mongodb.close();
                 cb(null, doc);
             });
         });
     });
+};
+
+User.get = function (doc, cb) {
+    db.get(doc, cb);
 };
