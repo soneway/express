@@ -22,6 +22,6 @@ User.prototype.save = function (cb) {
     });
 };
 
-User.get = function (doc, cb) {
-    db.get(doc, cb);
+User.get = function (query, cb) {
+    db.get(query, cb);
 };
