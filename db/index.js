@@ -1,5 +1,3 @@
-'use strict';
-
 var config = require('./config');
 var mongodb = require('mongodb');
 
@@ -30,36 +28,22 @@ module.exports = function (collName) {
 
         //查1个
         get: function (query, cb) {
-            new Promise(function (resolve) {
-                mongodb.open(function (err, db) {
-                    resolve(db);
-                });
-            }).then(function (db) {
-                db.collection(collName, function (err, coll) {
-                    return coll;
-                });
-            }).then(function (coll) {
-                coll.findOne(query, function (err, doc) {
-                    cb(null, doc);
-                });
-            });
+            mongodb.open(open);
 
-            //mongodb.open(open);
-            //
-            //function open(err, db) {
-            //    errHander(err, cb);
-            //    db.collection(collName, collection);
-            //}
-            //
-            //function collection(err, coll) {
-            //    errHander(err, cb);
-            //    coll.findOne(query, findOne);
-            //}
-            //
-            //function findOne(err, doc) {
-            //    errHander(err, cb);
-            //    cb(null, doc);
-            //}
+            function open(err, db) {
+                errHander(err, cb);
+                db.collection(collName, collection);
+            }
+
+            function collection(err, coll) {
+                errHander(err, cb);
+                coll.findOne(query, findOne);
+            }
+
+            function findOne(err, doc) {
+                errHander(err, cb);
+                cb(null, doc);
+            }
         }
     };
 };
