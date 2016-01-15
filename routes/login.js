@@ -1,12 +1,18 @@
+//用户登陆
+
 var User = require('../models/user');
 var jtool = require('jtool');
 
+
 module.exports = {
+
     post: function (req, res) {
         var uid = req.body.uid,
             pwd = req.body.pwd;
 
         User.get({uid: uid}, function (err, user) {
+            if (err) return errorHandler(err, res);
+
             if (!user) {
                 return jtool.send(res, {
                     status: 401,
@@ -20,8 +26,6 @@ module.exports = {
                 });
             }
 
-            //删除密码信息
-            delete user.pwd;
             req.session.user = user;
             jtool.send(res, {
                 status: 200,
@@ -29,4 +33,5 @@ module.exports = {
             });
         });
     }
+
 };

@@ -8,20 +8,22 @@ function User(user) {
 
 module.exports = User;
 
-User.prototype.save = function (cb) {
-    var user = this;
-    mongodb.open(function (err, db) {
-        db.collection('user', function (err, collection) {
-            collection.insert(user, {
-                safe: true
-            }, function (err, doc) {
-                mongodb.close();
-                cb(null, doc);
-            });
-        });
-    });
+//添加用户
+User.prototype.add = function (cb) {
+    db.add(this, cb);
 };
 
+//获取单个用户
 User.get = function (query, cb) {
     db.get(query, cb);
+};
+
+//编辑
+User.edit = function (query, doc, cb) {
+
+    //删除不可修改的信息
+    delete doc._id;
+    delete doc.uid;
+
+    db.edit(query, doc, cb);
 };

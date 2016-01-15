@@ -11,39 +11,67 @@ module.exports = function (collName) {
         safe: true
     });
 
-    function errHander(err, cb) {
-        if (err) {
-            mongodb.close();
-            return cb(err);
+    //错误处理函数
+    function onerror(err, cb) {
+        mongodb.close();
+        cb(err);
+    }
+
+    //打开数据集函数
+    function openColl(cb) {
+        //打开数据库
+        mongodb.open(open);
+
+        //打开数据库回调
+        function open(err, db) {
+            if (err) return onerror(err, cb);
+
+            //打开数据集
+            db.collection(collName, cb);
         }
     }
 
     return {
         //增
-        add: function (doc) {
-            mongodb.open(function (err, db) {
+        add: function (doc, cb) {
+            openColl(function (err, coll) {
+                if (err) return onerror(err, cb);
 
+                coll.insert(doc, function (err, rs) {
+                    if (err) return onerror(err, cb);
+
+                    mongodb.close();
+                    cb(null, rs.ops[0]);
+                });
             });
         },
 
         //查1个
         get: function (query, cb) {
-            mongodb.open(open);
+            openColl(function (err, coll) {
+                if (err) return onerror(err, cb);
 
-            function open(err, db) {
-                errHander(err, cb);
-                db.collection(collName, collection);
-            }
+                coll.findOne(query, function (err, doc) {
+                    if (err) return onerror(err, cb);
 
-            function collection(err, coll) {
-                errHander(err, cb);
-                coll.findOne(query, findOne);
-            }
+                    mongodb.close();
+                    cb(null, doc);
+                });
+            });
+        },
 
-            function findOne(err, doc) {
-                errHander(err, cb);
-                cb(null, doc);
-            }
+        //改
+        edit: function (query, doc, cb) {
+            openColl(function (err, coll) {
+                if (err) return onerror(err, cb);
+
+                coll.update(query, {$set: doc}, function (err) {
+                    if (err) return onerror(err, cb);
+
+                    mongodb.close();
+                    cb(null);
+                });
+            });
         }
     };
 };

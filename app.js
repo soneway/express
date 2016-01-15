@@ -20,10 +20,19 @@ app.use(session({
 }));
 
 
+//全局的错误处理函数
+global.errorHandler = function (err, res) {
+    jtool.send(res, {
+        status: 500,
+        msg   : err.message
+    });
+};
+
+
 //需要登陆拦截的path
-var loginPaths = ['/user'],
+var loginPaths = ['/loginfo', '/user'],
 //不要登陆拦截的path
-    nologinPaths = ['/login'];
+    nologinPaths = ['/login', '/register'];
 //登陆拦截
 app.use('/*', function (req, res, next) {
     var path = req.baseUrl;
